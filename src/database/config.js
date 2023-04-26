@@ -1,7 +1,7 @@
 import { config as dotenv} from "dotenv";
 dotenv();
 
-const postgres = "postgres"
+const postgres = "postgres "
 
 export const config = {
     nameDB: process.env.NAME_DB || 'tools-easier-life',
