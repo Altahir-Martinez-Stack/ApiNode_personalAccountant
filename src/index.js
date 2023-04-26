@@ -1,5 +1,18 @@
 import app from "../app";
+import { sequelize } from './database'
 
-app.listen(app.get("port"));
+async function main() {
+    try {
+        await sequelize.authenticate()
+        console.log('Connection has been established successfully.')
+        app.listen(app.get("port"))
+        console.log("server on port", app.get("port"));
+    
+    } catch (error) {
+        console.error('Unable to connect to the database:', error);
+    }
+}
 
-console.log("server on port", app.get("port"));
+
+main()
+
