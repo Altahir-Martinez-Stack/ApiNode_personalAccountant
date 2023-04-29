@@ -1,16 +1,40 @@
-import { getConnection, sql, queries } from "../database";
+import { Detail } from "../models/Details.js";
 
+//muestra todos de la tabla detail
 export const getDetail = async (req, res) => {
   try {
-    const pool = await getConnection();
-    const result = await pool.request().query(queries.getDetail);
-    res.json(result.recordsets[0]);
+    const detail = await Detail.findAll();
+    res.json(detail);
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    return res.status(500).json({ message: error.message });
   }
 };
 
+//muestra por id de la tabla detail
+export const getDetailById = async (req, res) => {
+  const { id } = req.params;
+
+  if (id == null) {
+    return res.status(400).json({ msg: "Id es nulo" });
+  }
+
+  try {
+    const detail = await Detail.findOne({
+      where: {
+        id,
+      },
+    });
+    if (!detail) {
+      return res.status(404).json({ message: "Detail does not exists" });
+    }
+
+    res.send(detail);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+//crea un nuevo registro en la tabla Detail
 export const createNewDetail = async (req, res) => {
   const { detailTypeId, name, amount, amountOfMoney, description, date } =
     req.body;
@@ -27,67 +51,24 @@ export const createNewDetail = async (req, res) => {
 
   var date_time = new Date();
 
-  const pool = await getConnection();
-
   try {
-    await pool
-      .request()
-      .input("detailTypeId", sql.Int, detailTypeId)
-      .input("name", sql.VarChar, name)
-      .input("amount", sql.Int, amount)
-      .input("amountOfMoney", sql.Decimal, amountOfMoney)
-      .input("description", sql.Text, description)
-      .input("date", sql.DateTime, date_time)
-      .query(queries.addNewDetail);
+    const newDetail = await Detail.create({
+      detailTypeId,
+      name,
+      amount,
+      amountOfMoney,
+      description,
+      date: date_time,
+    });
 
-    res.json({ detailTypeId, name, amount, amountOfMoney, description, date });
+    res.send("creating Detail");
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    return res.status(500).json({ message: error.message });
   }
 };
 
-export const getDetailById = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (id == null) {
-      return res.status(400).json({ msg: "Id es nulo" });
-    }
-
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("id", id)
-      .query(queries.getDetailById);
-
-    res.send(result.recordsets[0]);
-  } catch (error) {
-    res.status(500);
-    res.send(error.message);
-  }
-};
-
-export const deleteDetailById = async (req, res) => {
-  const { id } = req.params;
-  if (id == null) {
-    return res.status(400).json({ msg: "Id es nulo" });
-  }
-  try {
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("id", id)
-      .query(queries.deleteDetailById);
-
-    res.sendStatus(204);
-  } catch (error) {
-    res.status(500);
-    res.send(error.message);
-  }
-};
-
-export const updateDetailById = async (req, res) => {
+//actualiza un registro en la tabla Detail
+export const updateDetail = async (req, res) => {
   const { detailTypeId, name, amount, amountOfMoney, description, date } =
     req.body;
 
@@ -102,25 +83,39 @@ export const updateDetailById = async (req, res) => {
     return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
   }
   try {
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("detailTypeId", sql.Int, detailTypeId)
-      .input("name", sql.VarChar, name)
-      .input("amount", sql.Int, amount)
-      .input("amountOfMoney", sql.Decimal, amountOfMoney)
-      .input("description", sql.Text, description)
-      //.input("date", sql.DateTime, date)
-      .input("id", sql.Int, id)
-      .query(queries.updateDetailById);
+    const detail = await Detail.findByPk(id);
+    detail.detailTypeId = detailTypeId;
+    detail.name = name;
+    detail.amount = amount;
+    detail.amountOfMoney = amountOfMoney;
+    detail.description = description;
+    await detail.save();
 
-    res.json({ detailTypeId, name, amount, amountOfMoney, description, date });
+    res.json(detail);
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    return res.status(500).json({ message: error.message });
   }
 };
 
+//elimina un registro en la tabla Detail
+export const deleteDetail = async (req, res) => {
+  const { id } = req.params;
+  if (id == null) {
+    return res.status(400).json({ msg: "Id es nulo" });
+  }
+  try {
+    await Detail.destroy({
+      where: {
+        id,
+      },
+    });
+    res.sendStatus(204);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+//busca por name registro en la tabla Detail (revisar despues)
 export const searchDetail = async (req, res) => {
   const { search } = req.body;
 
@@ -128,41 +123,22 @@ export const searchDetail = async (req, res) => {
     return res.status(400).json({ msg: "Bad Request. Can not do the search" });
   }
   //Validate Number
-  var num = 5;
+  var num = 3;
   if (search.length == num) {
     return res
       .status(400)
-      .json({ msg: "Bad Request. Only " + num + " letters are allowed" });
+      .json({ message: "Bad Request. Only " + num + " letters are allowed" });
   }
 
-  var searchExtensive = "%" + search + "%";
   try {
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("search", searchExtensive)
-      .query(queries.searchDetail);
-
-    res.json(result.recordsets[0]);
+    const detail = await Detail.findOne({
+      where: {
+        name: search,
+      },
+    });
+    console.log("detail", detail);
+    res.send(detail);
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    return res.status(500).json({ message: error.message });
   }
 };
-
-//beta aun en prueba
-async function validateIdDetail(id) {
-  var result = false;
-
-  const pool = await getConnection();
-  const resultSql = await pool
-    .request()
-    .input("id", sql.Int, id)
-    .query(queries.validatingDetailById);
-  //console.log("result:", resultSql.recordset[0].Result);
-  if (resultSql.recordset[0].Result === true) {
-    result = true;
-  }
-
-  return result;
-}

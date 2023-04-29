@@ -4,18 +4,18 @@ import {
   getDetail,
   createNewDetail,
   getDetailById,
-  deleteDetailById,
-  updateDetailById,
+  deleteDetail,
+  updateDetail,
   searchDetail,
 } from "../controllers/details.controller";
 
 const router = Router();
 
-router.get("/detail", getDetail);
-router.post("/detail", createNewDetail);
-router.get("/detail/:id", getDetailById);
-router.delete("/detail/:id", deleteDetailById);
-router.put("/detail/:id", updateDetailById);
+router.get("/details", getDetail);
+router.post("/details", createNewDetail);
+router.get("/details/:id", getDetailById);
+router.delete("/details/:id", deleteDetail);
+router.put("/details/:id", updateDetail);
 router.post("/detailSearch", searchDetail);
 
 export default router;

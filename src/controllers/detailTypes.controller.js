@@ -1,51 +1,32 @@
-import { getConnection, sql, queries } from "../database";
+import { DetailType } from "../models/DetailTypes.js";
 
 export const getDetailType = async (req, res) => {
   try {
-    const pool = await getConnection();
-    const result = await pool.request().query(queries.getDetailType);
-    res.json(result.recordsets);
+    const detailTypes = await DetailType.findAll();
+    res.json(detailTypes);
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    return res.status(500).json({ message: error.message });
   }
 };
 
 export const getDetailTypeById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (id == null) {
-      return res.status(400).json({ msg: "Id es nulo" });
-    }
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("id", id)
-      .query(queries.getDetailTypeById);
-
-    res.send(result.recordsets[0]);
-  } catch (error) {
-    res.status(500);
-    res.send(error.message);
+  const { id } = req.params;
+  if (id == null) {
+    return res.status(400).json({ msg: "Id es nulo" });
   }
-};
-
-export const getDetailTypeByDetailId = async (req, res) => {
   try {
-    const { id } = req.params;
-    if (id == null) {
-      return res.status(400).json({ msg: "Id es nulo" });
+    const detailType = await DetailType.findOne({
+      where: {
+        id,
+      },
+    });
+    if (!detailType) {
+      return res.status(404).json({ message: "Detailtype does not exists" });
     }
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("id", id)
-      .query(queries.getDetailTypeByDetailId);
 
-    res.send(result.recordsets[0]);
+    res.send(detailType);
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -58,64 +39,51 @@ export const createNewDetailType = async (req, res) => {
 
   var date_time = new Date();
 
-  const pool = await getConnection();
-
   try {
-    await pool
-      .request()
-      .input("nameNumber", sql.Int, nameNumber)
-      .input("name", sql.VarChar, name)
-      .input("tags", sql.VarChar, tags)
-      .input("date", sql.DateTime, date_time)
-      .query(queries.addNewDetailType);
+    const newDetailType = await DetailType.create({
+      nameNumber,
+      name,
+      tags,
+      date: date_time,
+    });
 
-    res.json({ detailId, name, tags, date });
+    res.send("creating DetailType");
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    return res.status(500).json({ message: error.message });
   }
 };
 
-export const updateDetailTypeById = async (req, res) => {
+export const updateDetailType = async (req, res) => {
+  const { nameNumber, name, tags } = req.body;
+  const { id } = req.params;
+  if (nameNumber == null || name == null || tags == null) {
+    return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
+  }
   try {
-    const { nameNumber, name, tags } = req.body;
-    const { id } = req.params;
-    if (detailId == null || name == null || tags == null) {
-      return res
-        .status(400)
-        .json({ msg: "Bad Request. Please Fill all fields" });
-    }
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("nameNumber", sql.Int, nameNumber)
-      .input("name", sql.VarChar, name)
-      .input("tags", sql.VarChar, tags)
-      .input("id", sql.Int, id)
-      .query(queries.updateDetailTypeById);
-
-    res.json({ detailId, name, tags });
+    const detailType = await DetailType.findByPk(id);
+    detailType.nameNumber = nameNumber;
+    detailType.name = name;
+    detailType.tags = tags;
+    await detailType.save();
+    res.json(detailType);
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    return res.status(500).json({ message: error.message });
   }
 };
 
-export const deleteDetailTypeById = async (req, res) => {
+export const deleteDetailType = async (req, res) => {
+  const { id } = req.params;
+  if (id == null) {
+    return res.status(400).json({ msg: "Id es nulo" });
+  }
   try {
-    const { id } = req.params;
-    if (id == null) {
-      return res.status(400).json({ msg: "Id es nulo" });
-    }
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("id", id)
-      .query(queries.deleteDetailById);
-
+    await DetailType.destroy({
+      where: {
+        id,
+      },
+    });
     res.sendStatus(204);
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    return res.status(500).json({ message: error.message });
   }
 };
