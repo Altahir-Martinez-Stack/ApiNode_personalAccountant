@@ -1,4 +1,5 @@
 import { Detail } from "../models/Details.js";
+const { Op } = require("sequelize");
 
 //muestra todos de la tabla detail
 export const getDetail = async (req, res) => {
@@ -133,11 +134,16 @@ export const searchDetail = async (req, res) => {
   try {
     const detail = await Detail.findOne({
       where: {
-        name: search,
+        name: {
+          [Op.like]: "%" + search + "%",
+        },
       },
     });
-    console.log("detail", detail);
-    res.send(detail);
+    if (detail === null) {
+      return res.status(400).json({ msg: "Not found!" });
+    } else {
+      res.send(detail);
+    }
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

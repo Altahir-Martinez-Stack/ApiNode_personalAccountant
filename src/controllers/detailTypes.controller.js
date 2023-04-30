@@ -1,4 +1,5 @@
 import { DetailType } from "../models/DetailTypes.js";
+const { Op } = require("sequelize");
 
 export const getDetailType = async (req, res) => {
   try {
@@ -83,6 +84,39 @@ export const deleteDetailType = async (req, res) => {
       },
     });
     res.sendStatus(204);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+//busca por name registro en la tabla Detail (revisar despues)
+export const searchDetailType = async (req, res) => {
+  const { search } = req.body;
+
+  if (search == null) {
+    return res.status(400).json({ msg: "Bad Request. Can not do the search" });
+  }
+  //Validate Number
+  var num = 3;
+  if (search.length == num) {
+    return res
+      .status(400)
+      .json({ message: "Bad Request. Only " + num + " letters are allowed" });
+  }
+
+  try {
+    const detailType = await DetailType.findOne({
+      where: {
+        name: {
+          [Op.like]: "%" + search + "%",
+        },
+      },
+    });
+    if (detailType === null) {
+      return res.status(400).json({ msg: "Not found!" });
+    } else {
+      res.send(detailType);
+    }
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

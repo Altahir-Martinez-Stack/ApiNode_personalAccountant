@@ -6,6 +6,7 @@ import {
   createNewDetailType,
   deleteDetailType,
   updateDetailType,
+  searchDetailType,
 } from "../controllers/detailTypes.controller";
 
 const router = Router();
@@ -15,5 +16,6 @@ router.post("/detailTypes", createNewDetailType);
 router.get("/detailTypes/:id", getDetailTypeById);
 router.delete("/detailTypes/:id", deleteDetailType);
 router.put("/detailTypes/:id", updateDetailType);
+router.post("/detailTypeSearch", searchDetailType);
 
 export default router;
