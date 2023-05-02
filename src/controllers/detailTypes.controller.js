@@ -83,7 +83,7 @@ export const deleteDetailType = async (req, res) => {
         id,
       },
     });
-    res.sendStatus(204);
+    res.send("confirmed request: item was removed");
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

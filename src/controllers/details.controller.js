@@ -35,7 +35,7 @@ export const getDetailById = async (req, res) => {
   }
 };
 
-//crea un nuevo registro en la tabla Detail
+//crear un nuevo registro en la tabla Detail
 export const createNewDetail = async (req, res) => {
   const { detailTypeId, name, amount, amountOfMoney, description, date } =
     req.body;
@@ -68,7 +68,7 @@ export const createNewDetail = async (req, res) => {
   }
 };
 
-//actualiza un registro en la tabla Detail
+//actualizar un registro en la tabla Detail
 export const updateDetail = async (req, res) => {
   const { detailTypeId, name, amount, amountOfMoney, description, date } =
     req.body;
@@ -98,7 +98,7 @@ export const updateDetail = async (req, res) => {
   }
 };
 
-//elimina un registro en la tabla Detail
+//eliminar un registro en la tabla Detail
 export const deleteDetail = async (req, res) => {
   const { id } = req.params;
   if (id == null) {
@@ -110,13 +110,13 @@ export const deleteDetail = async (req, res) => {
         id,
       },
     });
-    res.sendStatus(204);
+    res.send("confirmed request: item was removed");
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
-//busca por name registro en la tabla Detail (revisar despues)
+//buscar por name registro en la tabla Detail
 export const searchDetail = async (req, res) => {
   const { search } = req.body;
 
