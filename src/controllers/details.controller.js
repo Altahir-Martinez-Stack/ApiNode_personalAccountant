@@ -132,17 +132,17 @@ export const searchDetail = async (req, res) => {
   }
 
   try {
-    const detail = await Detail.findOne({
+    const detail = await Detail.findAndCountAll({
       where: {
         name: {
           [Op.like]: "%" + search + "%",
         },
       },
     });
-    if (detail === null) {
+    if (detail.count === 0) {
       return res.status(400).json({ msg: "Not found!" });
     } else {
-      res.send(detail);
+      res.send(detail.rows);
     }
   } catch (error) {
     return res.status(500).json({ message: error.message });
