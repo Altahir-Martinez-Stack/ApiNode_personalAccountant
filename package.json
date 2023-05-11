@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.js --exec babel-node",
-    "start": "nodemon src/index.js --exec babel-node"
+    "start": "nodemon src/index.js --exec babel-node",
+    "clean": "rimraf -rf dist",
+    "build": "npm run clean && babel ./src --out-dir dist --copy-files"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +22,7 @@
     "nodemailer": "^6.9.1",
     "pg": "^8.10.0",
     "pg-hstore": "^2.3.4",
+    "rimraf": "^5.0.0",
     "sequelize": "^6.31.0"
   },
   "devDependencies": {
