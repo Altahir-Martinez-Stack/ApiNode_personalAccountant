@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { prueba } from "../controllers/mail.controller";
+import { sendMailTo } from "../controllers/mail.controller";
 
 const router = Router();
 
-router.post("/Mails", prueba);
+router.post("/mails", sendMailTo);
 
 export default router;

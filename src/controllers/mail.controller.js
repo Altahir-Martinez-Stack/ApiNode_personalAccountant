@@ -13,7 +13,7 @@ function recipientsEmail(mail, subjecttxt, description) {
 }
 
 //
-export const prueba = async (req, res) => {
+export const sendMailTo = async (req, res) => {
   const { mail, subject, description } = req.body;
 
   if (mail == null || subject == null || description == null) {

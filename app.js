@@ -5,6 +5,7 @@ import cors from "cors";
 import detailRoutes from "./src/routes/details.routes";
 import detailTypeRoutes from "./src/routes/detailTypes.routes";
 import mailRoutes from "./src/routes/mail.routes";
+import authRoutes from "./src/routes/auth.routes";
 const app = express();
 
 //settings
@@ -19,5 +20,6 @@ app.use(cors());
 app.use(detailRoutes);
 app.use(detailTypeRoutes);
 app.use(mailRoutes);
+app.use(authRoutes);
 
 export default app;
