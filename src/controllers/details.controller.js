@@ -90,6 +90,7 @@ export const updateDetail = async (req, res) => {
     detail.amount = amount;
     detail.amountOfMoney = amountOfMoney;
     detail.description = description;
+    detail.date = date;
     await detail.save();
 
     res.json(detail);
