@@ -1,8 +1,9 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../database/index";
+import { Detail } from "./Details";
 
 //Creando las tablas DetailTypes
-export const DetailType = sequelize.define("DetailTypes", {
+export const DetailType = sequelize.define("detailTypes", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -18,6 +19,17 @@ export const DetailType = sequelize.define("DetailTypes", {
     type: DataTypes.STRING,
   },
   date: {
-    type: DataTypes.DATE,
+    type: DataTypes.DATEONLY,
   },
+});
+
+
+DetailType.hasMany(Detail, {
+  foreinkey: "detailTypeId",
+  sourceKey: "id",
+});
+
+Detail.belongsTo(DetailType, {
+  foreinkey: "detailTypeId",
+  targetId: "id",
 });
