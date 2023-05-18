@@ -10,12 +10,17 @@ export const getDetailType = async (req, res) => {
   }
 };
 
+//Busca por id
 export const getDetailTypeById = async (req, res) => {
+  //Datos que se envias desde el front
   const { id } = req.params;
+
+  //valida si es null o no
   if (id == null) {
     return res.status(400).json({ msg: "Id es nulo" });
   }
   try {
+    //hace una busqueda con el id en la tabla DetailType
     const detailType = await DetailType.findOne({
       where: {
         id,
@@ -32,15 +37,19 @@ export const getDetailTypeById = async (req, res) => {
 };
 
 export const createNewDetailType = async (req, res) => {
+  //Datos que se envias desde el front
   const { nameNumber, name, tags, date } = req.body;
 
+  //Valida si es null
   if (nameNumber == null || name == null || tags == null) {
     return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
   }
 
+  //toma la fecha actual
   var date_time = new Date();
 
   try {
+    //creando un nuevo elemento de la tabla DetailType
     const newDetailType = await DetailType.create({
       nameNumber,
       name,
@@ -55,29 +64,66 @@ export const createNewDetailType = async (req, res) => {
 };
 
 export const updateDetailType = async (req, res) => {
+  //Datos que se envias desde el front
   const { nameNumber, name, tags } = req.body;
   const { id } = req.params;
+
+  //valida si es null o no
   if (nameNumber == null || name == null || tags == null) {
     return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
   }
   try {
+    //hace una busqueda con el id en la tabla DetailType
+    const validateDetailType = await DetailType.findOne({
+      where: {
+        id,
+      },
+    });
+
+    //Valida si existe el id
+    if (!validateDetailType) {
+      return res
+        .status(400)
+        .json({ msg: "Bad Request. That element was not found" });
+    }
+
+    //busca por el id
     const detailType = await DetailType.findByPk(id);
+
     detailType.nameNumber = nameNumber;
     detailType.name = name;
     detailType.tags = tags;
+    //Guarda
     await detailType.save();
+
     res.json(detailType);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
+//Elimina un registro
 export const deleteDetailType = async (req, res) => {
   const { id } = req.params;
   if (id == null) {
     return res.status(400).json({ msg: "Id es nulo" });
   }
   try {
+    //hace una busqueda con el id en la tabla DetailType
+    const validateDetailType = await DetailType.findOne({
+      where: {
+        id,
+      },
+    });
+
+    //Valida si existe el id
+    if (!validateDetailType) {
+      return res
+        .status(400)
+        .json({ msg: "Bad Request. That element was not found" });
+    }
+
+    //Elimina
     await DetailType.destroy({
       where: {
         id,
@@ -105,6 +151,7 @@ export const searchDetailType = async (req, res) => {
   }
 
   try {
+    //Hace la busqueda
     const detailType = await DetailType.findOne({
       where: {
         name: {
