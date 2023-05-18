@@ -13,6 +13,7 @@ export const getDetail = async (req, res) => {
 
 //muestra por id de la tabla detail
 export const getDetailById = async (req, res) => {
+  //Datos que se envias desde el front
   const { id } = req.params;
 
   if (id == null) {
@@ -20,11 +21,13 @@ export const getDetailById = async (req, res) => {
   }
 
   try {
+    //hace la busqueda por el id
     const detail = await Detail.findOne({
       where: {
         id,
       },
     });
+    //Valida si existe el id
     if (!detail) {
       return res.status(404).json({ message: "Detail does not exists" });
     }
@@ -37,6 +40,7 @@ export const getDetailById = async (req, res) => {
 
 //crear un nuevo registro en la tabla Detail
 export const createNewDetail = async (req, res) => {
+  //Datos que se envias desde el front
   const { detailTypeId, name, amount, amountOfMoney, description, date } =
     req.body;
 
@@ -70,10 +74,13 @@ export const createNewDetail = async (req, res) => {
 
 //actualizar un registro en la tabla Detail
 export const updateDetail = async (req, res) => {
+  //Datos que se envias desde el front
   const { detailTypeId, name, amount, amountOfMoney, description, date } =
     req.body;
 
   const { id } = req.params;
+
+  //Valida es null o no
   if (
     detailTypeId == null ||
     name == null ||
@@ -84,7 +91,22 @@ export const updateDetail = async (req, res) => {
     return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
   }
   try {
+    //hace una busqueda con el id en la tabla DetailType
+    const validateDetail = await Detail.findOne({
+      where: {
+        id,
+      },
+    });
+
+    //Valida si existe el id
+    if (!validateDetail) {
+      return res
+        .status(400)
+        .json({ msg: "Bad Request. That element was not found" });
+    }
+
     const detail = await Detail.findByPk(id);
+
     detail.detailTypeId = detailTypeId;
     detail.name = name;
     detail.amount = amount;
@@ -100,11 +122,26 @@ export const updateDetail = async (req, res) => {
 
 //eliminar un registro en la tabla Detail
 export const deleteDetail = async (req, res) => {
+  //Datos que se envias desde el front
   const { id } = req.params;
   if (id == null) {
     return res.status(400).json({ msg: "Id es nulo" });
   }
   try {
+    const validateDetail = await Detail.findOne({
+      where: {
+        id,
+      },
+    });
+
+    //Valida si existe el id
+    if (!validateDetail) {
+      return res
+        .status(400)
+        .json({ msg: "Bad Request. That element was not found" });
+    }
+
+    //Elimina
     await Detail.destroy({
       where: {
         id,
@@ -118,8 +155,10 @@ export const deleteDetail = async (req, res) => {
 
 //buscar por name registro en la tabla Detail
 export const searchDetail = async (req, res) => {
+  //Datos que se envias desde el front
   const { search } = req.body;
 
+  //valida si no es null
   if (search == null) {
     return res.status(400).json({ msg: "Bad Request. Can not do the search" });
   }
@@ -132,6 +171,7 @@ export const searchDetail = async (req, res) => {
   }
 
   try {
+    //Hace la busqueda de la tabla Detail por el nombre
     const detail = await Detail.findAndCountAll({
       where: {
         name: {
