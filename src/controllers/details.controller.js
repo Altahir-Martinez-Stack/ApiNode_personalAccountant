@@ -46,8 +46,7 @@ export const createNewDetail = async (req, res) => {
     detailTypeId == null ||
     name == null ||
     amount == null ||
-    amountOfMoney == null ||
-    description == null
+    amountOfMoney == null 
   ) {
     return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
   }
@@ -79,8 +78,7 @@ export const updateDetail = async (req, res) => {
     detailTypeId == null ||
     name == null ||
     amount == null ||
-    amountOfMoney == null ||
-    description == null
+    amountOfMoney == null 
   ) {
     return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
   }
