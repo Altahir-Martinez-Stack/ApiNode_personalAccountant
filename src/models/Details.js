@@ -34,8 +34,3 @@ DetailType.hasMany(Detail, {
   foreignkey: "id",
   sourcekey: "detailTypeId",
 });
-
-Detail.belongsTo(DetailType, {
-  foreignkey: "id",
-  DetailTypeId: "id",
-});
