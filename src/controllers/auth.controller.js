@@ -73,7 +73,7 @@ export const login = async (req, res) => {
       const token = jwt.sign(
         {
           name,
-          exp: Date.now() + 60 * 1000,
+          //exp: Date.now() + 60 * 1000,
         },
         secret
       );
