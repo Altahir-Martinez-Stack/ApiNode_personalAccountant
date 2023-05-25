@@ -1,10 +1,15 @@
-import { Detail } from "../models/Details.js";
+
+import { DetailType } from "../models/DetailTypes";
+import { Detail } from "../models/Details";
 const { Op } = require("sequelize");
 
 //muestra todos de la tabla detail
 export const getDetail = async (req, res) => {
   try {
-    const detail = await Detail.findAll();
+    const detail = await Detail.findAll({
+      include: DetailType, // muestra un nueva propiedad "detailType" extendiendo la tabla detailtypes
+      order: [['date', 'DESC']] // muestra en orden a la fecha de forma descente 
+    });
     res.json(detail);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -48,22 +53,20 @@ export const createNewDetail = async (req, res) => {
     detailTypeId == null ||
     name == null ||
     amount == null ||
-    amountOfMoney == null ||
-    description == null
+    amountOfMoney == null
   ) {
     return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
   }
 
-  var date_time = new Date();
 
   try {
-    const newDetail = await Detail.create({
+    await Detail.create({
       detailTypeId,
       name,
       amount,
       amountOfMoney,
       description,
-      date: date_time,
+      date: date,
     });
 
     res.send("creating Detail");
@@ -85,8 +88,7 @@ export const updateDetail = async (req, res) => {
     detailTypeId == null ||
     name == null ||
     amount == null ||
-    amountOfMoney == null ||
-    description == null
+    amountOfMoney == null
   ) {
     return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
   }
@@ -112,6 +114,7 @@ export const updateDetail = async (req, res) => {
     detail.amount = amount;
     detail.amountOfMoney = amountOfMoney;
     detail.description = description;
+    detail.date = date
     await detail.save();
 
     res.json(detail);
