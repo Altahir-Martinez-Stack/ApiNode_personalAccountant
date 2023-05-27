@@ -32,7 +32,7 @@ function getJob({ day, hour, minute }) {
     if (!isDay(day)) return;
     if (!isHour(hour)) return;
     if (!isMinute(minute)) return;
-
+    /* doc: https://crontab.guru/examples.html */
     return `${minute} ${hour} * * ${day}`
 }
 
