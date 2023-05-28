@@ -5,6 +5,7 @@ import { sequelize } from "./database";
 import "./models/DetailTypes.js";
 import "./models/Details.js";
 import "./models/Users.js";
+import "./models/Roles.js";
 
 async function main() {
   try {

@@ -10,7 +10,7 @@ const secret = process.env.SECRET;
 const { Op } = require("sequelize");
 
 //crear un nuevo registro en la tabla user
-export const registerLogin = async (req, res) => {
+export const signUp = async (req, res) => {
   //Datos que se envias desde el front
   const { email, password, name } = req.body;
 
@@ -48,7 +48,7 @@ export const registerLogin = async (req, res) => {
 };
 
 //verifica el mail y contraseña
-export const login = async (req, res) => {
+export const signIn = async (req, res) => {
   //Datos que se envias desde el front
   const { email, password } = req.body;
 
@@ -66,9 +66,6 @@ export const login = async (req, res) => {
     //Comprar la contraseña con la conttraseña encrytada
     const checkPassword = await compare(password, user.password);
     if (checkPassword) {
-      // res.send({
-      //   data: user.name,
-      // });
       var name = user.name;
       const token = jwt.sign(
         {
@@ -89,44 +86,19 @@ export const login = async (req, res) => {
   }
 };
 
-export const token = async (req, res) => {
-  const { id: sub, name } = { id: 4, name: "renzo" };
-  const token = jwt.sign(
-    {
-      sub,
-      name,
-      exp: Date.now() + 60 * 1000,
-    },
-    secret
-  );
-  res.send({ token });
-  try {
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
-};
-
-export const publics = async (req, res) => {
-  res.send("I'm public");
-  try {
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
-};
-
-export const privates = async (req, res) => {
-  const token = req.headers.authorization.split(" ")[1];
-  if (!token) {
-    throw new Error("Authentication failed!");
-  }
-
-  try {
-    const payload = jwt.verify(token, secret);
-    if (Date.now() > payload.exp) {
-      return res.status(401).send({ error: "token expired" });
-    }
-    res.send("I'm private");
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
-};
+// export const token = async (req, res) => {
+//   const { id: sub, name } = { id: 4, name: "renzo" };
+//   const token = jwt.sign(
+//     {
+//       sub,
+//       name,
+//       exp: Date.now() + 60 * 1000,
+//     },
+//     secret
+//   );
+//   res.send({ token });
+//   try {
+//   } catch (error) {
+//     return res.status(500).json({ message: error.message });
+//   }
+// };
