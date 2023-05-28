@@ -39,6 +39,7 @@ export const signUp = async (req, res) => {
       email,
       password: passwordHash,
       name,
+      //roleId: 0,
     });
 
     res.send("creating user");
@@ -57,7 +58,11 @@ export const signIn = async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      where: {
+        email,
+      },
+    });
     if (!user) {
       return res.status(404).json({
         msg: "Bad Request. error does not exist the username and password",

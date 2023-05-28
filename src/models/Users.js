@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "../database/index";
 
 //Creando las tablas Users
-export const User = sequelize.define("Users", {
+export const User = sequelize.define("users", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,

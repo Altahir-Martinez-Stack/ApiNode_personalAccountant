@@ -3,7 +3,7 @@ import { sequelize } from "../database/index";
 import { User } from "./Users";
 
 //Creando las tablas Rol
-export const Rol = sequelize.define("Roles", {
+export const Rol = sequelize.define("roles", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -14,11 +14,11 @@ export const Rol = sequelize.define("Roles", {
   },
 });
 Rol.hasMany(User, {
-  foreinkey: "RolId",
+  foreinkey: "rolId",
   sourceKey: "id",
 });
 
 User.belongsTo(Rol, {
-  foreinkey: "RolId",
+  foreinkey: "rolId",
   targetId: "id",
 });
