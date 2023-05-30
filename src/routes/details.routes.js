@@ -13,10 +13,10 @@ import {
 const router = Router();
 
 router.get("/details", [authJwt.verifyToken], getDetail);
-router.post("/details", createNewDetail);
-router.get("/details/:id", getDetailById);
-router.delete("/details/:id", deleteDetail);
-router.put("/details/:id", updateDetail);
-router.post("/detailSearch", searchDetail);
+router.post("/details", [authJwt.verifyToken], createNewDetail);
+router.get("/details/:id", [authJwt.verifyToken], getDetailById);
+router.delete("/details/:id", [authJwt.verifyToken], deleteDetail);
+router.put("/details/:id", [authJwt.verifyToken], updateDetail);
+router.post("/detailSearch", [authJwt.verifyToken], searchDetail);
 
 export default router;
