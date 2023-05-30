@@ -160,12 +160,12 @@ export const searchDetail = async (req, res) => {
   const { search } = req.body;
 
   //valida si no es null
-  if (search == null) {
+  if (!search || typeof search !== 'string') {
     return res.status(400).json({ msg: "Bad Request. Can not do the search" });
   }
   //Validate Number
   var num = 3;
-  if (search.length == num) {
+  if (search.length < num) {
     return res
       .status(400)
       .json({ message: "Bad Request. Only " + num + " letters are allowed" });
