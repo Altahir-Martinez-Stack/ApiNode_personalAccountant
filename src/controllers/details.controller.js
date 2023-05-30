@@ -159,11 +159,11 @@ export const searchDetail = async (req, res) => {
   //Datos que se envias desde el front
   const { search } = req.body;
 
-  //valida si no es null
+  //valite empty or not string
   if (!search || typeof search !== 'string') {
     return res.status(400).json({ msg: "Bad Request. Can not do the search" });
   }
-  //Validate Number
+  //Validate min search number 
   var num = 3;
   if (search.length < num) {
     return res
@@ -172,22 +172,27 @@ export const searchDetail = async (req, res) => {
   }
 
   try {
-    //Hace la busqueda de la tabla Detail por el nombre
+    const { Op, where, fn, col } = sequelize
+    const whereCaseInsensitive = (column) =>
+      where(fn('LOWER', col(`${column}`)), 'LIKE', '%' + search + '%')
+
+    //Hace la busqueda de la tabla Detail por el nombre y description
     const detail = await Detail.findAndCountAll({
-      order: [["date", "DESC"]], 
+      order: [["date", "DESC"]], //order descendente
       where: {
-        name: sequelize.where(
-          sequelize.fn('LOWER', sequelize.col('name')),
-          'LIKE', '%' + search + '%'
-        )
+        [Op.or]: [
+          { name: whereCaseInsensitive('name') },
+          { description: whereCaseInsensitive('description') }
+        ]
       },
     });
-    if (detail.count === 0) {
-      return res.status(400).json({ msg: "Not found!" });
-    } else {
-      res.send(detail.rows);
-    }
+
+    if (detail.count === 0)
+      res.status(400).json({ msg: "Not found!" })
+    else
+      res.send(detail.rows)
+
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
