@@ -79,8 +79,7 @@ export const signIn = async (req, res) => {
         },
         secret
       );
-      console.log({ token });
-      res.send("request accepted, user is correct");
+      res.json({user, token });
     } else {
       return res.status(404).json({
         msg: "Bad Request. error does not exist the username and password",
