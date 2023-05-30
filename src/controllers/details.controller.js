@@ -1,6 +1,6 @@
 import { DetailType } from "../models/DetailTypes";
 import { Detail } from "../models/Details";
-const { Op } = require("sequelize");
+import sequelize from 'sequelize'
 
 //muestra todos de la tabla detail
 export const getDetail = async (req, res) => {
@@ -174,10 +174,12 @@ export const searchDetail = async (req, res) => {
   try {
     //Hace la busqueda de la tabla Detail por el nombre
     const detail = await Detail.findAndCountAll({
+      order: [["date", "DESC"]], 
       where: {
-        name: {
-          [Op.like]: "%" + search + "%",
-        },
+        name: sequelize.where(
+          sequelize.fn('LOWER', sequelize.col('name')),
+          'LIKE', '%' + search + '%'
+        )
       },
     });
     if (detail.count === 0) {
