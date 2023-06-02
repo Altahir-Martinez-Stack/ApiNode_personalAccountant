@@ -24,6 +24,10 @@ export const Detail = sequelize.define("details", {
     type: DataTypes.STRING,
     defaultValue: "",
   },
+  jobDateState:{
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
   date: {
     type: DataTypes.DATEONLY,
   },
