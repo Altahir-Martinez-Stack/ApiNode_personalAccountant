@@ -1,6 +1,6 @@
 import app from "../app";
 import { sequelize } from "./database";
-import schedule  from "node-schedule"
+import schedule from "node-schedule"
 import changeJobs from "./helpers/changeJobs";
 
 //Models
@@ -25,6 +25,10 @@ async function main() {
 function initialJobs() {
   console.log("initial jobs");
   try {
+    /* 
+      Se estara ejecutando cada 5 minutos 
+      para actualizar los jobs por si cambian
+    */
     schedule.scheduleJob('*/5 * * * *', function () {
       changeJobs()
     })
