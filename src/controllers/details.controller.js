@@ -15,9 +15,9 @@ export const getDetail = async (req, res) => {
       include: DetailType, // muestra un nueva propiedad "detailType" extendiendo la tabla detailtypes
       order: [["date", "DESC"]], // muestra en orden a la fecha de forma descente
     });
-    res.json(detail);
+    return res.json(detail);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 }
 
@@ -30,9 +30,9 @@ export const getDetailById = async (req, res) => {
 
   try {
     const detail = await validateFindDetail(id, res)
-    res.send(detail);
+    return res.send(detail);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -40,7 +40,7 @@ export const getDetailById = async (req, res) => {
 export const createNewDetails = async (req, res) => {
   const details = req.body
   if (isNotArray(details))
-    res.status(400).json({ msj: "Bad Request. fill in the details" })
+    return res.status(400).json({ msj: "Bad Request. fill in the details" })
 
   try {
     const newDetails = []
@@ -77,7 +77,7 @@ export const createNewDetail = async (req, res) => {
   try {
     const newDetail = await createdDetail(detail)
     if (newDetail.status)
-      res.send("creating Detail");
+      return res.send("creating Detail");
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -93,7 +93,7 @@ export const updateDetail = async (req, res) => {
   try {
     await validateFindDetail(id, res)
     const foundDetail = await updatedDetail(detail);
-    if (foundDetail.status) res.json({ ...foundDetail.data })
+    if (foundDetail.status) return res.json({ ...foundDetail.data })
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -103,14 +103,14 @@ export const updateDetail = async (req, res) => {
 export const deleteDetail = async (req, res) => {
   //Datos que se envias desde el front
   const { id } = req.params;
-  if (id == null) res.status(400).json({ msg: "Id es nulo" })
+  if (id == null) return res.status(400).json({ msg: "Id es nulo" })
 
   try {
     await validateFindDetail(id, res)
 
     //Elimina
     await Detail.destroy({ where: { id } })
-    res.send("confirmed request: item was removed");
+    return res.send("confirmed request: item was removed");
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -118,10 +118,28 @@ export const deleteDetail = async (req, res) => {
 
 // elimar details
 
-export const deleteDetails = async (_, res) => {
+export const deleteDetails = async (req, res) => {
+  const { search, ids } = req.query
+
   try {
-    await Detail.destroy({ where: {} });
-    res.send("confirmed request: all removed");
+    let where = {}
+    //borrar por busqueda por nombre o descripción
+    if (search) {
+      where = {
+        [Op.or]: [
+          { name: whereCaseInsensitive('name', search) },
+          { description: whereCaseInsensitive('description', search) }
+        ]
+      }
+    }
+    //borrar por ids
+    if (ids) {
+      const id = ids.split(',').map(id => parseInt(id))
+      where = { id }
+    }
+
+    await Detail.destroy({ where });
+    return res.send("confirmed request: all removed");
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -131,14 +149,15 @@ export const deleteDetails = async (_, res) => {
 export const searchDetail = async (req, res) => {
   //Datos que se envias desde el front
   const { search } = req.body;
+  console.log("search", search)
   const numberMin = 3
 
   //valite empty or not string
   if (!search || typeof search !== 'string')
-    res.status(400).json({ msg: "Bad Request. Can not do the search" })
+    return res.status(400).json({ msg: "Bad Request. Can not do the search" })
   //Validate min search number 
   if (search.length < numberMin)
-    res.status(400).json({ message: "Bad Request. Only " + numberMin + " letters are allowed" })
+    return res.status(400).json({ message: "Bad Request. Only " + numberMin + " letters are allowed" })
 
   try {
     //Hace la busqueda de la tabla Detail por el nombre y description
@@ -146,15 +165,15 @@ export const searchDetail = async (req, res) => {
       order: [["date", "DESC"]], //order descendente
       where: {
         [Op.or]: [
-          { name: whereCaseInsensitive('name') },
-          { description: whereCaseInsensitive('description') }
+          { name: whereCaseInsensitive('name', search) },
+          { description: whereCaseInsensitive('description', search) }
         ]
       },
     })
 
-    if (detail.count === 0) res.status(400).json({ msg: "Not found!" })
-    res.send(detail.rows)
+    if (detail.count === 0) return res.status(400).json({ msg: "Not found!" })
+    return res.send(detail.rows)
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
