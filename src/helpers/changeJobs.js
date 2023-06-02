@@ -15,6 +15,7 @@ async function changeJobs() {
         for (const { id, jobDate, jobDateState } of details) {
             if (jobDate && jobDateState)
                 scheduleJob(jobDate, function () {
+                    //enviar los correos 
                     console.log(`id: ${id},jobDate: ${jobDate}`);
                 });
         }
