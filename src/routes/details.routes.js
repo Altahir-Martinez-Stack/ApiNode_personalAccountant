@@ -15,8 +15,8 @@ import {
 const router = Router();
 
 router.get("/details", [authJwt.verifyToken], getDetail);
-router.post("/details/all", [authJwt.verifyToken], createNewDetails);
 router.post("/details", [authJwt.verifyToken], createNewDetail);
+router.post("/details/all", [authJwt.verifyToken], createNewDetails);
 router.get("/details/:id", [authJwt.verifyToken], getDetailById);
 router.delete("/details/all", [authJwt.verifyToken], deleteDetails);
 router.delete("/details/:id", [authJwt.verifyToken], deleteDetail);
