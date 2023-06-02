@@ -20,6 +20,10 @@ export const Detail = sequelize.define("details", {
   description: {
     type: DataTypes.STRING,
   },
+  jobDate:{
+    type: DataTypes.STRING,
+    defaultValue: "",
+  },
   date: {
     type: DataTypes.DATEONLY,
   },

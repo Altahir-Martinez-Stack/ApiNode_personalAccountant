@@ -6,16 +6,16 @@ async function updated(detail) {
   try {
     const foundDetail = await Detail.findByPk(detail.id)
 
-    if (foundDetail) {
-      foundDetail.detailTypeId = detail.detailTypeId
-      foundDetail.name = detail.name
-      foundDetail.amount = detail.amount
-      foundDetail.amountOfMoney = detail.amountOfMoney
-      foundDetail.description = detail.description
-      foundDetail.date = detail.date
-      await foundDetail.save()
-      return { status: true, data: foundDetail.dataValues }
-    }
+    foundDetail.detailTypeId = detail.detailTypeId
+    foundDetail.name = detail.name
+    foundDetail.amount = detail.amount
+    foundDetail.amountOfMoney = detail.amountOfMoney
+    foundDetail.description = detail.description
+    foundDetail.jobDate = detail.jobDate
+    foundDetail.date = detail.date
+    await foundDetail.save()
+    return { status: true, data: foundDetail.dataValues }
+
   } catch (error) {
     return { status: false, error: error.message }
   }
@@ -29,6 +29,7 @@ async function created(detail) {
       amount: detail.amount,
       amountOfMoney: detail.amountOfMoney,
       description: detail.description,
+      jobDate: detail.jobDate,
       date: detail.date,
     });
     return { status: true, data: newDetail.dataValues }
@@ -100,8 +101,12 @@ export const createNewDetails = async (req, res) => {
       )
         return res.status(400).json({ msg: "Bad Request. Please Fill all fields", detail })
 
+      const { id } = detail
+      //hace una busqueda con el id en la tabla DetailType
+      const validateDetail = await Detail.findOne({where: {id}});
+
       // validate for update Detail
-      if (id) {
+      if (validateDetail && id) {
         const foundDetail = await updated(detail);
         if (foundDetail.status) newDetails.push({ status: "updated", ...foundDetail.data })
 
@@ -223,6 +228,17 @@ export const deleteDetail = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+// elimar details
+
+export const deleteDetails = async (_, res) => {
+   try {
+    await Detail.destroy({where: {}}).then(function () {});
+    res.send("confirmed request: all removed");
+   } catch (error) {
+    return res.status(500).json({ message: error.message });
+   }
+}
 
 //buscar por name registro en la tabla Detail
 export const searchDetail = async (req, res) => {
