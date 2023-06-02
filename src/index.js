@@ -1,5 +1,7 @@
 import app from "../app";
 import { sequelize } from "./database";
+import schedule  from "node-schedule"
+import changeJobs from "./helpers/changeJobs";
 
 //Models
 import "./models/DetailTypes.js";
@@ -20,4 +22,18 @@ async function main() {
   }
 }
 
-main();
+function initialJobs() {
+  console.log("initial jobs");
+  try {
+    schedule.scheduleJob('*/5 * * * *', function () {
+      changeJobs()
+    })
+  } catch (error) {
+    schedule.gracefulShutdown()
+    return error.message
+  }
+}
+
+
+main()
+initialJobs()
