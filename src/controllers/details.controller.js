@@ -1,44 +1,28 @@
+import createdDetail from "../helpers/createdDetail";
+import isNotArray from "../helpers/isNotArray";
+import updatedDetail from "../helpers/updatedDetail";
+import whereCaseInsensitive from "../helpers/whereCaseInsensitive";
 import { DetailType } from "../models/DetailTypes";
 import { Detail } from "../models/Details";
-import sequelize from 'sequelize'
+import { Op } from 'sequelize'
 // functions helps
-async function updated(detail) {
-  try {
-    const foundDetail = await Detail.findByPk(detail.id)
-
-    foundDetail.detailTypeId = detail.detailTypeId
-    foundDetail.name = detail.name
-    foundDetail.amount = detail.amount
-    foundDetail.amountOfMoney = detail.amountOfMoney
-    foundDetail.description = detail.description
-    foundDetail.jobDate = detail.jobDate
-    foundDetail.date = detail.date
-    await foundDetail.save()
-    return { status: true, data: foundDetail.dataValues }
-
-  } catch (error) {
-    return { status: false, error: error.message }
-  }
+const validateEntries = (detail, res, msg = { msg: "Bad Request. Please Fill all fields" }) => {
+  if (!detail.detailTypeId || !detail.name || detail.amount == null || !detail.amountOfMoney)
+    return res.status(400).json(msg)
 }
 
-async function created(detail) {
-  try {
-    const newDetail = await Detail.create({
-      detailTypeId: detail.detailTypeId,
-      name: detail.name,
-      amount: detail.amount,
-      amountOfMoney: detail.amountOfMoney,
-      description: detail.description,
-      jobDate: detail.jobDate,
-      date: detail.date,
-    });
-    return { status: true, data: newDetail.dataValues }
-  } catch (error) {
-    return { status: false, error: error.message }
-  }
+const validateFindDetail = async (id, res) => {
+  //hace una busqueda con el id en la tabla DetailType
+  const foundDetail = await Detail.findOne({ where: { id } });
+  //Valida si existe el detail
+  if (!foundDetail)
+    return res.status(400).json({ msg: "Bad Request. That detail was not found" })
+
+  return foundDetail
 }
 
-//muestra todos de la tabla detail
+
+//muestra todos de la tabla detailexport 
 export const getDetail = async (req, res) => {
   try {
     const detail = await Detail.findAll({
@@ -47,71 +31,47 @@ export const getDetail = async (req, res) => {
     });
     res.json(detail);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
-};
+}
 
 //muestra por id de la tabla detail
 export const getDetailById = async (req, res) => {
   //Datos que se envias desde el front
   const { id } = req.params;
 
-  if (id == null) {
-    return res.status(400).json({ msg: "Id es nulo" });
-  }
+  if (id == null) res.status(400).json({ msg: "Id es nulo" })
 
   try {
-    //hace la busqueda por el id
-    const detail = await Detail.findOne({
-      where: {
-        id,
-      },
-    });
-    //Valida si existe el id
-    if (!detail) {
-      return res.status(404).json({ message: "Detail does not exists" });
-    }
-
+    const detail = await validateFindDetail(id, res)
     res.send(detail);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
 //creat varios registro en la tabla Detail
 export const createNewDetails = async (req, res) => {
   const details = req.body
-  if (!details ||
-    !Array.isArray(details) ||
-    details?.length <= 0 ||
-    !details[0]?.name
-  ) {
+  if (isNotArray(details))
     res.status(400).json({ msj: "Bad Request. fill in the details" })
-  }
-
 
   try {
     const newDetails = []
     for (let detail of details) {
-      if (
-        !detail.detailTypeId ||
-        !detail.name ||
-        detail.amount == null ||
-        !detail.amountOfMoney
-      )
-        return res.status(400).json({ msg: "Bad Request. Please Fill all fields", detail })
+      validateEntries(detail, res, { msg: "Bad Request. Please Fill all fields", detail })
 
       const { id } = detail
       //hace una busqueda con el id en la tabla DetailType
-      const validateDetail = await Detail.findOne({where: {id}});
+      const validateDetail = await Detail.findOne({ where: { id } });
 
       // validate for update Detail
       if (validateDetail && id) {
-        const foundDetail = await updated(detail);
+        const foundDetail = await updatedDetail(detail);
         if (foundDetail.status) newDetails.push({ status: "updated", ...foundDetail.data })
 
       } else { //created detail
-        const newDetail = await created(detail);
+        const newDetail = await createdDetail(detail);
         if (newDetail.status) newDetails.push({ status: "created", ...newDetail.data })
       }
     }
@@ -124,30 +84,14 @@ export const createNewDetails = async (req, res) => {
 
 //crear un nuevo registro en la tabla Detail
 export const createNewDetail = async (req, res) => {
+  const detail = req.body
   //Datos que se envias desde el front
-  const { detailTypeId, name, amount, amountOfMoney, description, date } =
-    req.body;
-
-  if (
-    detailTypeId == null ||
-    name == null ||
-    amount == null ||
-    amountOfMoney == null
-  ) {
-    return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
-  }
+  validateEntries(detail, res)
 
   try {
-    await Detail.create({
-      detailTypeId,
-      name,
-      amount,
-      amountOfMoney,
-      description,
-      date: date,
-    });
-
-    res.send("creating Detail");
+    const newDetail = await createdDetail(detail)
+    if (newDetail.status)
+      res.send("creating Detail");
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -155,41 +99,15 @@ export const createNewDetail = async (req, res) => {
 
 //actualizar un registro en la tabla Detail
 export const updateDetail = async (req, res) => {
-  const detail = req.body;
-  //Datos que se envias desde el front
-  const { detailTypeId, name, amount, amountOfMoney } = detail
+  const { id } = req.params
+  const detail = req.body
 
+  validateEntries(detail, res)
 
-  const { id } = req.params;
-
-  //Valida es null o no
-  if (
-    detailTypeId == null ||
-    name == null ||
-    amount == null ||
-    amountOfMoney == null
-  ) {
-    return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
-  }
   try {
-    //hace una busqueda con el id en la tabla DetailType
-    const validateDetail = await Detail.findOne({
-      where: {
-        id,
-      },
-    });
-
-    //Valida si existe el id
-    if (!validateDetail) {
-      return res
-        .status(400)
-        .json({ msg: "Bad Request. That element was not found" });
-    }
-
-    const foundDetail = await updated(detail);
-    if (foundDetail.status)
-      res.json({ ...foundDetail.data })
-
+    await validateFindDetail(id, res)
+    const foundDetail = await updatedDetail(detail);
+    if (foundDetail.status) res.json({ ...foundDetail.data })
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -199,30 +117,13 @@ export const updateDetail = async (req, res) => {
 export const deleteDetail = async (req, res) => {
   //Datos que se envias desde el front
   const { id } = req.params;
-  if (id == null) {
-    return res.status(400).json({ msg: "Id es nulo" });
-  }
-  try {
-    const validateDetail = await Detail.findOne({
-      where: {
-        id,
-      },
-    })
+  if (id == null) res.status(400).json({ msg: "Id es nulo" })
 
-    //Valida si existe el id
-    if (!validateDetail) {
-      return res
-        .status(400)
-        .json({ msg: "Bad Request. That element was not found" });
-    }
+  try {
+    await validateFindDetail(id, res)
 
     //Elimina
-    await Detail.destroy({
-      where: {
-        id,
-      },
-    })
-
+    await Detail.destroy({ where: { id } })
     res.send("confirmed request: item was removed");
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -232,36 +133,28 @@ export const deleteDetail = async (req, res) => {
 // elimar details
 
 export const deleteDetails = async (_, res) => {
-   try {
-    await Detail.destroy({where: {}}).then(function () {});
+  try {
+    await Detail.destroy({ where: {} });
     res.send("confirmed request: all removed");
-   } catch (error) {
+  } catch (error) {
     return res.status(500).json({ message: error.message });
-   }
+  }
 }
 
 //buscar por name registro en la tabla Detail
 export const searchDetail = async (req, res) => {
   //Datos que se envias desde el front
   const { search } = req.body;
+  const numberMin = 3
 
   //valite empty or not string
-  if (!search || typeof search !== 'string') {
-    return res.status(400).json({ msg: "Bad Request. Can not do the search" });
-  }
+  if (!search || typeof search !== 'string')
+    res.status(400).json({ msg: "Bad Request. Can not do the search" })
   //Validate min search number 
-  var num = 3;
-  if (search.length < num) {
-    return res
-      .status(400)
-      .json({ message: "Bad Request. Only " + num + " letters are allowed" });
-  }
+  if (search.length < numberMin)
+    res.status(400).json({ message: "Bad Request. Only " + numberMin + " letters are allowed" })
 
   try {
-    const { Op, where, fn, col } = sequelize
-    const whereCaseInsensitive = (column) =>
-      where(fn('LOWER', col(`${column}`)), 'LIKE', '%' + search + '%')
-
     //Hace la busqueda de la tabla Detail por el nombre y description
     const detail = await Detail.findAndCountAll({
       order: [["date", "DESC"]], //order descendente
@@ -273,11 +166,8 @@ export const searchDetail = async (req, res) => {
       },
     })
 
-    if (detail.count === 0)
-      res.status(400).json({ msg: "Not found!" })
-    else
-      res.send(detail.rows)
-
+    if (detail.count === 0) res.status(400).json({ msg: "Not found!" })
+    res.send(detail.rows)
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
