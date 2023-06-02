@@ -1,26 +1,12 @@
 import createdDetail from "../helpers/createdDetail";
 import isNotArray from "../helpers/isNotArray";
 import updatedDetail from "../helpers/updatedDetail";
+import validateEntriesDetail from "../helpers/validateEntriesDetail";
+import validateFindDetail from "../helpers/validateFindDetail";
 import whereCaseInsensitive from "../helpers/whereCaseInsensitive";
 import { DetailType } from "../models/DetailTypes";
 import { Detail } from "../models/Details";
 import { Op } from 'sequelize'
-// functions helps
-const validateEntries = (detail, res, msg = { msg: "Bad Request. Please Fill all fields" }) => {
-  if (!detail.detailTypeId || !detail.name || detail.amount == null || !detail.amountOfMoney)
-    return res.status(400).json(msg)
-}
-
-const validateFindDetail = async (id, res) => {
-  //hace una busqueda con el id en la tabla DetailType
-  const foundDetail = await Detail.findOne({ where: { id } });
-  //Valida si existe el detail
-  if (!foundDetail)
-    return res.status(400).json({ msg: "Bad Request. That detail was not found" })
-
-  return foundDetail
-}
-
 
 //muestra todos de la tabla detailexport 
 export const getDetail = async (req, res) => {
@@ -59,7 +45,7 @@ export const createNewDetails = async (req, res) => {
   try {
     const newDetails = []
     for (let detail of details) {
-      validateEntries(detail, res, { msg: "Bad Request. Please Fill all fields", detail })
+      validateEntriesDetail(detail, res, { msg: "Bad Request. Please Fill all fields", detail })
 
       const { id } = detail
       //hace una busqueda con el id en la tabla DetailType
@@ -86,7 +72,7 @@ export const createNewDetails = async (req, res) => {
 export const createNewDetail = async (req, res) => {
   const detail = req.body
   //Datos que se envias desde el front
-  validateEntries(detail, res)
+  validateEntriesDetail(detail, res)
 
   try {
     const newDetail = await createdDetail(detail)
@@ -102,7 +88,7 @@ export const updateDetail = async (req, res) => {
   const { id } = req.params
   const detail = req.body
 
-  validateEntries(detail, res)
+  validateEntriesDetail(detail, res)
 
   try {
     await validateFindDetail(id, res)
