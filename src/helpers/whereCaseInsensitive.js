@@ -1,6 +1,6 @@
 import {where, fn, col} from 'sequelize'
 
-function whereCaseInsensitive(column) {
+function whereCaseInsensitive(column, search) {
     return where(fn('LOWER', col(`${column}`)), 'LIKE', '%' + search + '%')
 }
 
