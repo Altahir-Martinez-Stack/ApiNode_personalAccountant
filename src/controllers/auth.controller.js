@@ -42,7 +42,14 @@ export const signUp = async (req, res) => {
       //roleId: 0,
     });
 
-    res.send("creating user");
+    const token = jwt.sign(
+      {
+        name,
+        //exp: Date.now() + 60 * 1000,
+      },
+      secret
+    );
+    res.json({ newUser, token });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -79,7 +86,7 @@ export const signIn = async (req, res) => {
         },
         secret
       );
-      res.json({user, token });
+      res.json({ user, token });
     } else {
       return res.status(404).json({
         msg: "Bad Request. error does not exist the username and password",
