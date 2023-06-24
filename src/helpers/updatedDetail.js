@@ -1,18 +1,22 @@
 import { Detail } from "../models/Details"
 
-async function updatedDetail(detail) {
+async function updatedDetail(id, detail) {
     try {
-        const foundDetail = await Detail.findByPk(detail.id)
+        const updateValues = {}
+        if (detail.detailTypeId) updateValues.detailTypeId = detail.detailTypeId
+        if (detail.name) updateValues.name = detail.name
+        if (detail.amount) updateValues.amount = detail.amount
+        if (detail.amountOfMoney) updateValues.amountOfMoney = detail.amountOfMoney
+        if (detail.description) updateValues.description = detail.description
+        if (detail.jobDate) updateValues.jobDate = detail.jobDate
+        if (detail.date) updateValues.date = detail.date
 
-        foundDetail.detailTypeId = detail.detailTypeId
-        foundDetail.name = detail.name
-        foundDetail.amount = detail.amount
-        foundDetail.amountOfMoney = detail.amountOfMoney
-        foundDetail.description = detail.description
-        foundDetail.jobDate = detail.jobDate
-        foundDetail.date = detail.date
-        await foundDetail.save()
-        return { status: true, data: foundDetail.dataValues }
+
+        const foundDetail = await Detail.update(
+            updateValues,
+            { where: { id } }
+        )
+        return { status: true, data: foundDetail[0] }
 
     } catch (error) {
         return { status: false, error: error.message }
