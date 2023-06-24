@@ -91,9 +91,10 @@ export const updateDetail = async (req, res) => {
   validateEntriesDetail(detail, res)
 
   try {
-    await validateFindDetail(id, res)
-    const foundDetail = await updatedDetail(detail);
-    if (foundDetail.status) return res.json({ ...foundDetail.data })
+    const found = await validateFindDetail(id, res)
+    const foundDetail = await updatedDetail(id, detail)
+    if (foundDetail.status) return res.json({ message: "updated successfull" })
+    res.status(400).json({ message: foundDetail.error })
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
