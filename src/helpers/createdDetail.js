@@ -10,6 +10,7 @@ async function createdDetail(detail) {
         description: detail.description,
         jobDate: detail.jobDate,
         date: detail.date,
+        userId: detail.userId
       });
       return { status: true, data: newDetail.dataValues }
     } catch (error) {

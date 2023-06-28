@@ -10,6 +10,7 @@ async function updatedDetail(id, detail) {
         if (detail.description) updateValues.description = detail.description
         if (detail.jobDate) updateValues.jobDate = detail.jobDate
         if (detail.date) updateValues.date = detail.date
+        if (detail.userId) updateValues.userId = detail.userId
 
 
         const foundDetail = await Detail.update(

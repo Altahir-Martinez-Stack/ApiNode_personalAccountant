@@ -2,8 +2,12 @@ import { DetailType } from "../models/DetailTypes.js";
 const { Op } = require("sequelize");
 
 export const getDetailType = async (req, res) => {
+  const userId = req.user.id
+
   try {
-    const detailTypes = await DetailType.findAll();
+    const detailTypes = await DetailType.findAll({
+      where: { userId }
+    })
     res.json(detailTypes);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -17,7 +21,7 @@ export const getDetailTypeById = async (req, res) => {
 
   //valida si es null o no
   if (id == null) {
-    return res.status(400).json({ msg: "Id es nulo" });
+    return res.status(400).json({ msg: "Id es nulo" })
   }
   try {
     //hace una busqueda con el id en la tabla DetailType
@@ -38,7 +42,8 @@ export const getDetailTypeById = async (req, res) => {
 
 export const createNewDetailType = async (req, res) => {
   //Datos que se envias desde el front
-  const { nameNumber, name, tags, date } = req.body;
+  const { nameNumber, name, tags, date } = req.body
+  const userId = req.user.id 
 
   //Valida si es null
   if (nameNumber == null || name == null || tags == null) {
@@ -54,10 +59,11 @@ export const createNewDetailType = async (req, res) => {
       nameNumber,
       name,
       tags,
+      userId,
       date: date_time,
     });
 
-    res.send("creating DetailType");
+    res.json(newDetailType);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -65,8 +71,8 @@ export const createNewDetailType = async (req, res) => {
 
 export const updateDetailType = async (req, res) => {
   //Datos que se envias desde el front
-  const { nameNumber, name, tags } = req.body;
-  const { id } = req.params;
+  const { nameNumber, name, tags } = req.body
+  const { id } = req.params
 
   //valida si es null o no
   if (nameNumber == null || name == null || tags == null) {

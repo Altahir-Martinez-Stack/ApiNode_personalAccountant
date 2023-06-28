@@ -10,8 +10,11 @@ import { Op } from 'sequelize'
 
 //muestra todos de la tabla detailexport 
 export const getDetail = async (req, res) => {
+  const userId = req.user.id // set parameter from token
+
   try {
     const detail = await Detail.findAll({
+      where: { userId },
       include: DetailType, // muestra un nueva propiedad "detailType" extendiendo la tabla detailtypes
       order: [["date", "DESC"]], // muestra en orden a la fecha de forma descente
     });
@@ -39,6 +42,8 @@ export const getDetailById = async (req, res) => {
 //creat varios registro en la tabla Detail
 export const createNewDetails = async (req, res) => {
   const details = req.body
+  const userId = req.user.id // set parameter from token
+
   if (isNotArray(details))
     return res.status(400).json({ msj: "Bad Request. fill in the details" })
 
@@ -47,18 +52,20 @@ export const createNewDetails = async (req, res) => {
     for (let detail of details) {
       validateEntriesDetail(detail, res, { msg: "Bad Request. Please Fill all fields", detail })
 
+      const changeDetail = { ...detail, userId }
       const { id } = detail
+
       //hace una busqueda con el id en la tabla DetailType
       const validateDetail = await Detail.findOne({ where: { id } });
 
       // validate for update Detail
       if (validateDetail && id) {
-        const foundDetail = await updatedDetail(detail);
+        const foundDetail = await updatedDetail(changeDetail);
         if (foundDetail.status) newDetails.push({ status: "updated", ...foundDetail.data })
 
       } else { //created detail
-        const newDetail = await createdDetail(detail);
-        if (newDetail.status) newDetails.push({ status: "created", ...newDetail.data })
+        const newDetail = await createdDetail(changeDetail);
+        if (newDetail.status) newDetails.push({ status: "created", ...newDetail.data, })
       }
     }
 
@@ -71,11 +78,12 @@ export const createNewDetails = async (req, res) => {
 //crear un nuevo registro en la tabla Detail
 export const createNewDetail = async (req, res) => {
   const detail = req.body
-  //Datos que se envias desde el front
-  validateEntriesDetail(detail, res)
+  const userId = req.user.id // set parameter from token
+
+  await validateEntriesDetail(detail, res)
 
   try {
-    const newDetail = await createdDetail(detail)
+    const newDetail = await createdDetail({ ...detail, userId })
     if (newDetail.status)
       return res.send("creating Detail");
   } catch (error) {
@@ -87,12 +95,13 @@ export const createNewDetail = async (req, res) => {
 export const updateDetail = async (req, res) => {
   const { id } = req.params
   const detail = req.body
+  const userId = req.user.id // set parameter from token
 
   validateEntriesDetail(detail, res)
 
   try {
-    const found = await validateFindDetail(id, res)
-    const foundDetail = await updatedDetail(id, detail)
+    await validateFindDetail(id, res)
+    const foundDetail = await updatedDetail(id, { ...detail, userId })
     if (foundDetail.status) return res.json({ message: "updated successfull" })
     res.status(400).json({ message: foundDetail.error })
   } catch (error) {
@@ -150,7 +159,6 @@ export const deleteDetails = async (req, res) => {
 export const searchDetail = async (req, res) => {
   //Datos que se envias desde el front
   const { search } = req.body;
-  console.log("search", search)
   const numberMin = 3
 
   //valite empty or not string
