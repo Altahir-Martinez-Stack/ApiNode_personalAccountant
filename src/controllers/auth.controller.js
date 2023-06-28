@@ -44,9 +44,10 @@ export const signUp = async (req, res) => {
       name: name || decode.name,
     });
 
+    const {id, email, name} = user
     const generateToken = token ? token : jwt.sign(
       {
-        name,
+        id, email, name
         //exp: Date.now() + 60 * 1000,
       },
       secret
@@ -85,10 +86,10 @@ export const signIn = async (req, res) => {
     if (token) return res.json({ user, token })
 
     if (checkPassword) {
-      let name = user.name;
+      const {id, email, name} = user
       const token = jwt.sign(
         {
-          name,
+          id, email, name
           //exp: Date.now() + 60 * 1000,
         },
         secret
