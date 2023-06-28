@@ -8,17 +8,21 @@ dotenv();
 const secret = process.env.SECRET;
 
 export const verifyToken = async (req, res, next) => {
-  const token = req.headers["x-access-token"];
+  const token = req.headers["x-access-token"]
+  
   try {
-    //si tiene token o no
     if (!token)
       return res.status(403).json({ message: "Authentication failed!" })
 
     const { email } = decodeJwt(token)
-    if (email) {
-      const foundUser = await User.findOne({ where: { email } });
-      if (foundUser) return next()
+    const foundUser = email ? await User.findOne({ where: { email } }) : null
+
+    if (foundUser) {
+      const { id, email, name } = foundUser
+      req.user = { id, email, name }
+      return next()
     }
+
 
     //compara el token
     const verified = jwt.verify(token, secret);
