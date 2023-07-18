@@ -4,18 +4,19 @@ import {
   getDetailType,
   getDetailTypeById,
   createNewDetailType,
-  deleteDetailTypeById,
-  updateDetailTypeById,
-  getDetailTypeByDetailId,
+  deleteDetailType,
+  updateDetailType,
+  searchDetailType,
 } from "../controllers/detailTypes.controller";
+import { authJwt } from "../middlewares";
 
 const router = Router();
 
-router.get("/detailType", getDetailType);
-router.post("/detailType", createNewDetailType);
-router.get("/detailType/:id", getDetailTypeById);
-router.delete("/detailType/:id", deleteDetailTypeById);
-router.put("/detailType/:id", updateDetailTypeById);
-router.get("/detailTypeIdDeatil/:id", getDetailTypeByDetailId);
+router.get("/detailTypes", [authJwt.verifyToken], getDetailType);
+router.post("/detailTypes", [authJwt.verifyToken], createNewDetailType);
+router.get("/detailTypes/:id", [authJwt.verifyToken], getDetailTypeById);
+router.delete("/detailTypes/:id", [authJwt.verifyToken], deleteDetailType);
+router.put("/detailTypes/:id", [authJwt.verifyToken], updateDetailType);
+router.post("/detailTypeSearch", [authJwt.verifyToken], searchDetailType);
 
 export default router;

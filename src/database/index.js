@@ -1,2 +1,2 @@
 export * from "./connection";
-export { queries } from "./querys";
+export { sequelize } from "./sequelize.connection";

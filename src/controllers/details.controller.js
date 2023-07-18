@@ -1,168 +1,188 @@
-import { getConnection, sql, queries } from "../database";
+import createdDetail from "../helpers/createdDetail";
+import isNotArray from "../helpers/isNotArray";
+import updatedDetail from "../helpers/updatedDetail";
+import validateEntriesDetail from "../helpers/validateEntriesDetail";
+import validateFindDetail from "../helpers/validateFindDetail";
+import whereCaseInsensitive from "../helpers/whereCaseInsensitive";
+import { DetailType } from "../models/DetailTypes";
+import { Detail } from "../models/Details";
+import { Op } from 'sequelize'
 
+//muestra todos de la tabla detailexport 
 export const getDetail = async (req, res) => {
-  try {
-    const pool = await getConnection();
-    const result = await pool.request().query(queries.getDetail);
-    res.json(result.recordsets[0]);
-  } catch (error) {
-    res.status(500);
-    res.send(error.message);
-  }
-};
-
-export const createNewDetail = async (req, res) => {
-  const { detailTypeId, name, amount, amountOfMoney, description, date } =
-    req.body;
-
-  if (
-    detailTypeId == null ||
-    name == null ||
-    amount == null ||
-    amountOfMoney == null ||
-    description == null
-  ) {
-    return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
-  }
-
-  var date_time = new Date();
-
-  const pool = await getConnection();
+  const userId = req.user.id // set parameter from token
 
   try {
-    await pool
-      .request()
-      .input("detailTypeId", sql.Int, detailTypeId)
-      .input("name", sql.VarChar, name)
-      .input("amount", sql.Int, amount)
-      .input("amountOfMoney", sql.Decimal, amountOfMoney)
-      .input("description", sql.Text, description)
-      .input("date", sql.DateTime, date_time)
-      .query(queries.addNewDetail);
-
-    res.json({ detailTypeId, name, amount, amountOfMoney, description, date });
+    const detail = await Detail.findAll({
+      where: { userId },
+      include: DetailType, // muestra un nueva propiedad "detailType" extendiendo la tabla detailtypes
+      order: [["date", "DESC"]], // muestra en orden a la fecha de forma descente
+    });
+    return res.json(detail);
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    return res.status(500).json({ message: error.message });
   }
-};
+}
 
+//muestra por id de la tabla detail
 export const getDetailById = async (req, res) => {
-  try {
-    const { id } = req.params;
+  //Datos que se envias desde el front
+  const { id } = req.params;
 
-    if (id == null) {
-      return res.status(400).json({ msg: "Id es nulo" });
+  if (id == null) res.status(400).json({ msg: "Id es nulo" })
+
+  try {
+    const detail = await validateFindDetail(id, res)
+    return res.send(detail);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+//creat varios registro en la tabla Detail
+export const createNewDetails = async (req, res) => {
+  const details = req.body
+  const userId = req.user.id // set parameter from token
+
+  if (isNotArray(details))
+    return res.status(400).json({ msj: "Bad Request. fill in the details" })
+
+  try {
+    const newDetails = []
+    for (let detail of details) {
+      validateEntriesDetail(detail, res, { msg: "Bad Request. Please Fill all fields", detail })
+
+      const changeDetail = { ...detail, userId }
+      const { id } = detail
+
+      //hace una busqueda con el id en la tabla DetailType
+      const validateDetail = await Detail.findOne({ where: { id } });
+
+      // validate for update Detail
+      if (validateDetail && id) {
+        const foundDetail = await updatedDetail(changeDetail);
+        if (foundDetail.status) newDetails.push({ status: "updated", ...foundDetail.data })
+
+      } else { //created detail
+        const newDetail = await createdDetail(changeDetail);
+        if (newDetail.status) newDetails.push({ status: "created", ...newDetail.data, })
+      }
     }
 
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("id", id)
-      .query(queries.getDetailById);
-
-    res.send(result.recordsets[0]);
+    Promise.all(newDetails).then(result => res.json(result))
   } catch (error) {
-    res.status(500);
-    res.send(error.message);
+    return res.status(500).json({ message: error.message });
   }
-};
-
-export const deleteDetailById = async (req, res) => {
-  const { id } = req.params;
-  if (id == null) {
-    return res.status(400).json({ msg: "Id es nulo" });
-  }
-  try {
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("id", id)
-      .query(queries.deleteDetailById);
-
-    res.sendStatus(204);
-  } catch (error) {
-    res.status(500);
-    res.send(error.message);
-  }
-};
-
-export const updateDetailById = async (req, res) => {
-  const { detailTypeId, name, amount, amountOfMoney, description, date } =
-    req.body;
-
-  const { id } = req.params;
-  if (
-    detailTypeId == null ||
-    name == null ||
-    amount == null ||
-    amountOfMoney == null ||
-    description == null
-  ) {
-    return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
-  }
-  try {
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("detailTypeId", sql.Int, detailTypeId)
-      .input("name", sql.VarChar, name)
-      .input("amount", sql.Int, amount)
-      .input("amountOfMoney", sql.Decimal, amountOfMoney)
-      .input("description", sql.Text, description)
-      //.input("date", sql.DateTime, date)
-      .input("id", sql.Int, id)
-      .query(queries.updateDetailById);
-
-    res.json({ detailTypeId, name, amount, amountOfMoney, description, date });
-  } catch (error) {
-    res.status(500);
-    res.send(error.message);
-  }
-};
-
-export const searchDetail = async (req, res) => {
-  const { search } = req.body;
-
-  if (search == null) {
-    return res.status(400).json({ msg: "Bad Request. Can not do the search" });
-  }
-  //Validate Number
-  var num = 5;
-  if (search.length == num) {
-    return res
-      .status(400)
-      .json({ msg: "Bad Request. Only " + num + " letters are allowed" });
-  }
-
-  var searchExtensive = "%" + search + "%";
-  try {
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("search", searchExtensive)
-      .query(queries.searchDetail);
-
-    res.json(result.recordsets[0]);
-  } catch (error) {
-    res.status(500);
-    res.send(error.message);
-  }
-};
-
-//beta aun en prueba
-async function validateIdDetail(id) {
-  var result = false;
-
-  const pool = await getConnection();
-  const resultSql = await pool
-    .request()
-    .input("id", sql.Int, id)
-    .query(queries.validatingDetailById);
-  //console.log("result:", resultSql.recordset[0].Result);
-  if (resultSql.recordset[0].Result === true) {
-    result = true;
-  }
-
-  return result;
 }
+
+//crear un nuevo registro en la tabla Detail
+export const createNewDetail = async (req, res) => {
+  const detail = req.body
+  const userId = req.user.id // set parameter from token
+
+  await validateEntriesDetail(detail, res)
+
+  try {
+    const newDetail = await createdDetail({ ...detail, userId })
+    if (newDetail.status)
+      return res.send("creating Detail");
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+//actualizar un registro en la tabla Detail
+export const updateDetail = async (req, res) => {
+  const { id } = req.params
+  const detail = req.body
+  const userId = req.user.id // set parameter from token
+
+  validateEntriesDetail(detail, res)
+
+  try {
+    await validateFindDetail(id, res)
+    const foundDetail = await updatedDetail(id, { ...detail, userId })
+    if (foundDetail.status) return res.json({ message: "updated successfull" })
+    res.status(400).json({ message: foundDetail.error })
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+//eliminar un registro en la tabla Detail
+export const deleteDetail = async (req, res) => {
+  //Datos que se envias desde el front
+  const { id } = req.params;
+  if (id == null) return res.status(400).json({ msg: "Id es nulo" })
+
+  try {
+    await validateFindDetail(id, res)
+
+    //Elimina
+    await Detail.destroy({ where: { id } })
+    return res.send("confirmed request: item was removed");
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// elimar details
+
+export const deleteDetails = async (req, res) => {
+  const { search, ids } = req.query
+
+  try {
+    let where = {}
+    //borrar por busqueda por nombre o descripción
+    if (search) {
+      where = {
+        [Op.or]: [
+          { name: whereCaseInsensitive('name', search) },
+          { description: whereCaseInsensitive('description', search) }
+        ]
+      }
+    }
+    //borrar por ids
+    if (ids) {
+      const id = ids.split(',').map(id => parseInt(id))
+      where = { id }
+    }
+
+    await Detail.destroy({ where });
+    return res.send("confirmed request: all removed");
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
+//buscar por name registro en la tabla Detail
+export const searchDetail = async (req, res) => {
+  //Datos que se envias desde el front
+  const { search } = req.body;
+  const numberMin = 3
+
+  //valite empty or not string
+  if (!search || typeof search !== 'string')
+    return res.status(400).json({ msg: "Bad Request. Can not do the search" })
+  //Validate min search number 
+  if (search.length < numberMin)
+    return res.status(400).json({ message: "Bad Request. Only " + numberMin + " letters are allowed" })
+
+  try {
+    //Hace la busqueda de la tabla Detail por el nombre y description
+    const detail = await Detail.findAndCountAll({
+      order: [["date", "DESC"]], //order descendente
+      where: {
+        [Op.or]: [
+          { name: whereCaseInsensitive('name', search) },
+          { description: whereCaseInsensitive('description', search) }
+        ]
+      },
+    })
+
+    if (detail.count === 0) return res.status(400).json({ msg: "Not found!" })
+    return res.send(detail.rows)
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
