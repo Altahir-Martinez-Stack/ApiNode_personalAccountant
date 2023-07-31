@@ -9,4 +9,5 @@ export const config = {
   password: process.env.PASSWORD_DB || "root",
   host: process.env.HOST_DB || "localhost",
   dialect: process.env.DIALECT_DB || postgres,
-};
+  urlConnect : process.env.CONNECT_URL_BD || ""
+}

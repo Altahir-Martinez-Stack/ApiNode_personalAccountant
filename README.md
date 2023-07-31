@@ -21,3 +21,11 @@
     * Mails
 
 
+### Enviroments
+
+NAME_DB 
+USERNAME_DB
+env.PASSWORD_DB 
+HOST_DB
+DIALECT_DB 
+CONNECT_URL_BD 

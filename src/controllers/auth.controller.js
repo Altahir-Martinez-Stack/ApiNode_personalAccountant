@@ -12,58 +12,80 @@ const { Op } = require("sequelize");
 
 //crear un nuevo registro en la tabla user
 export const signUp = async (req, res) => {
-  //Datos que se envias desde el front
-  const { email, password, name, token } = req.body
 
-  //validando los parametros
+  const { email, password, name } = req.body
+console.log(req.body?.token);
+  if (req.body?.token) {
+    console.log("entro 1");
+    try {
+      const decode = decodeJwt(token)
+      if (!decode) return res.status(400).json({ msg: "Bad Request. error decode token" })
 
-  if (!token && (email == null || password == null || name == null)) {
-    return res.status(400).json({ msg: "Bad Request. Please Fill all fields" })
-  }
+      const validateUser = await User.findOne({
+        where: { email: decode.email }
+      })
 
-  try {
-    //encrytando la contraseña
-    const passwordHash = password ? await encrypt(password) : ""
-    const decode = decodeJwt(token)
+      if (validateUser) {
+        return res
+          .status(400)
+          .json({ msg: "Bad Request. that email is already registered" });
+      }
 
-    const validateUser = await User.findOne({
-      where: { email: token ? decode.email : email }
-    })
+      const user = await User.create({
+        email: decode.email,
+        password: "",
+        name: decode.name,
+      })
 
-    //Valida si existe el id
-    if (validateUser) {
-      return res
-        .status(400)
-        .json({ msg: "Bad Request. that email is already registered" });
+      return res.json({ user, token })
+    } catch (error) {
+      return res.status(500).json({ msg: error.message })
     }
 
-    //creando los datos en la tabla de users
-    const user = await User.create({
-      email: email || decode.email,
-      password: passwordHash,
-      name: name || decode.name,
-    });
+  } else if (email && password && name) {
 
-    const {id, email, name} = user
-    const generateToken = token ? token : jwt.sign(
-      {
-        id, email, name
-        //exp: Date.now() + 60 * 1000,
-      },
-      secret
-    )
+    try {
+    
+      const validateUser = await User.findOne({
+        where: { email }
+      })
 
-    res.json({ user, token: generateToken || token })
-  } catch (error) {
-    return res.status(500).json({ msg: error.message })
+      if (validateUser) {
+        return res
+          .status(400)
+          .json({ msg: "Bad Request. that email is already registered" });
+      }
+
+      const passwordHash = await encrypt(password)
+
+      const user = await User.create({
+        email,
+        password: passwordHash,
+        name,
+      });
+      
+      const generateToken = jwt.sign(
+        {
+          id: user.id, email: user.email, name: user.name
+          //exp: Date.now() + 60 * 1000,
+        },
+        secret
+      )
+
+      return res.json({ user, token: generateToken })
+    } catch (error) {
+      return res.status(500).json({ msg: error.message })
+    }
   }
+
+  return res.status(400).json({ msg: "Bad Request. Please Fill all fields" })
+
 }
 
 //verifica el mail y contraseña
 export const signIn = async (req, res) => {
   //Datos que se envias desde el front
   const { email, password, token } = req.body;
-
   if (!token && (email == null || password == null)) {
     return res.status(400).json({ msg: "Bad Request. Please Fill all fields" });
   }
@@ -86,7 +108,7 @@ export const signIn = async (req, res) => {
     if (token) return res.json({ user, token })
 
     if (checkPassword) {
-      const {id, email, name} = user
+      const { id, email, name } = user
       const token = jwt.sign(
         {
           id, email, name
