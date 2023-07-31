@@ -4,6 +4,7 @@
   "description": "technology tools for an easier life",
   "main": "index.js",
   "scripts": {
+    "rimraf": "./node_modules/rimraf/bin.js",
     "dev": "nodemon src/index.js --exec babel-node",
     "start": "node dist",
     "clean": "rimraf -rf dist",
